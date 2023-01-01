@@ -36,7 +36,7 @@ while pikachu_life > 0 and squirtle_life > 0:
     # squirtle turn
     print("\n ===Squirtle Turn=== \n")
     attack_squirtle = None
-    while attack_squirtle != 1 and attack_squirtle != 2 and attack_squirtle != 3:
+    while attack_squirtle not in [1, 2, 3]:
         attack_squirtle = int(input("Enter your attack! \n"
                                     "1.- Tacke \n"
                                     "2.- Water gun \n"
