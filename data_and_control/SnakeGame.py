@@ -1,58 +1,83 @@
 import os
 import random
+import readchar
 
-import readchar as readchar
-
-# Constants
-POSITION_X = 0
-POSITION_Y = 1
-
-MAP_WIDTH = 20
-MAP_HEIGHT = 15
-
-NUM_OF_MAP_OBJECTS = 11
-
-# Position
-my_position = [3, 1]
+my_position = [1, 1]
 tail_length = 0
 tail = []
-
-# Objects
 map_objects = []
 
 # Settings
 game_over = False
 snake_died = False
 
+POS_X = 0
+POS_Y = 1
+
+NUM_OF_MAP_OBJECTS = 11
+
+obstacle_definition = """\
+████████████████████████████████████████████████████
+█                                                  █
+█                                                  █
+█                                                  █
+██████████████████████████████████████████         █
+██████████████████████████████████████████         █
+█                                                  █
+█                                                  █
+█                                                  █
+█         ██████████████████████████████████████████
+█         ██████████████████████████████████████████
+█                                                  █
+█                                                  █
+█                                                  █
+██████████████████████████████████████████         █
+██████████████████████████████████████████         █
+█                                                  █
+█                                                  █
+█                                                  █
+████████████████████████████████████████████████████\
+"""
+
+# Create obstacle map
+obstacle_definition = [list(row) for row in obstacle_definition.split("\n")]
+
+MAP_WIDTH = len(obstacle_definition[0])
+MAP_HEIGHT = len(obstacle_definition)
+
+# Main Loop
 while not game_over:
+    os.system("clear")
     while len(map_objects) < NUM_OF_MAP_OBJECTS:
-        new_position = [random.randint(0, MAP_WIDTH), random.randint(0, MAP_HEIGHT)]
-        if new_position not in map_objects and new_position != my_position:
+        new_position = [random.randint(0, MAP_WIDTH - 1), random.randint(0, MAP_HEIGHT - 1)]
+
+        if new_position not in map_objects and new_position != my_position and \
+                obstacle_definition[new_position[POS_Y]][new_position[POS_X]] != "█":
             map_objects.append(new_position)
 
     # Map
-    print("+" + "-" * MAP_WIDTH * 3 + "+")
+    print("+" + "-" * MAP_WIDTH * 2 + "-+")
 
-    for coordination_y in range(MAP_HEIGHT):
-        print("|", end="")
+    for coordinate_y in range(MAP_HEIGHT):
+        print("|", end=" ")
 
         for coordinate_x in range(MAP_WIDTH):
-            chart_object = " "
+            char_to_draw = " "
             object_in_cell = None
             tail_in_cell = None
 
             for map_object in map_objects:
-                if map_object[POSITION_X] == coordinate_x and map_object[POSITION_Y] == coordination_y:
-                    chart_object = "•"
+                if map_object[POS_X] == coordinate_x and map_object[POS_Y] == coordinate_y:
+                    char_to_draw = "*"
                     object_in_cell = map_object
 
             for tail_piece in tail:
-                if tail_piece[POSITION_X] == coordinate_x and tail_piece[POSITION_Y] == coordination_y:
-                    chart_object = "×"
+                if tail_piece[POS_X] == coordinate_x and tail_piece[POS_Y] == coordinate_y:
+                    char_to_draw = "◉"
                     tail_in_cell = tail_piece
 
-            if my_position[POSITION_X] == coordinate_x and my_position[POSITION_Y] == coordination_y:
-                print(" X ", end="")
+            if my_position[POS_X] == coordinate_x and my_position[POS_Y] == coordinate_y:
+                char_to_draw = "☻"
 
                 if object_in_cell:
                     map_objects.remove(object_in_cell)
@@ -62,38 +87,38 @@ while not game_over:
                     game_over = True
                     snake_died = True
 
-            else:
-                print(" {} ".format(chart_object), end="")
+            if obstacle_definition[coordinate_y][coordinate_x] == "█":
+                char_to_draw = "█"
 
+            print("{}".format(char_to_draw), end=" ")
         print("|")
-
-    print("+" + "-" * MAP_WIDTH * 3 + "+")
+    print("+" + "-" * MAP_WIDTH * 2 + "-+")
 
     # Ask user where he wants to move
     direction = readchar.readchar()
 
+    new_position = None
+
     if direction == "w":
-        tail.insert(0, my_position.copy())
-        tail = tail[:tail_length]
-        my_position[POSITION_Y] -= 1
-        my_position[POSITION_Y] %= MAP_HEIGHT
+        new_position = [my_position[POS_X], (my_position[POS_Y] - 1) % MAP_HEIGHT]
+
     elif direction == "s":
-        tail.insert(0, my_position.copy())
-        tail = tail[:tail_length]
-        my_position[POSITION_Y] += 1
-        my_position[POSITION_Y] %= MAP_HEIGHT
-    elif direction == "d":
-        tail.insert(0, my_position.copy())
-        tail = tail[:tail_length]
-        my_position[POSITION_X] += 1
-        my_position[POSITION_X] %= MAP_WIDTH
+        new_position = [my_position[POS_X], (my_position[POS_Y] + 1) % MAP_HEIGHT]
+
     elif direction == "a":
-        tail.insert(0, my_position.copy())
-        tail = tail[:tail_length]
-        my_position[POSITION_X] -= 1
-        my_position[POSITION_X] %= MAP_WIDTH
+        new_position = [(my_position[POS_X] - 1) % MAP_WIDTH, my_position[POS_Y]]
+
+    elif direction == "d":
+        new_position = [(my_position[POS_X] + 1) % MAP_WIDTH, my_position[POS_Y]]
+
     elif direction == "q":
-        game_over = True
+        endgame = True
+
+    if new_position:
+        if obstacle_definition[new_position[POS_Y]][new_position[POS_X]] != "█":
+            tail.insert(0, my_position.copy())
+            tail = tail[:tail_length]
+            my_position = new_position
 
     os.system("clear")
 
